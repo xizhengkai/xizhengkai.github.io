@@ -1,8 +1,8 @@
 ---
-title: Next Theme Tutorial
-description: NexT is a high quality elegant Jekyll theme ported from Hexo Next. It is crafted from scratch, with love.
+title: struct 与 union 区别
+description: struct 可以存储多个成员信息，而union每个成员会用同一个存储空间，只能存储最后一个成员的信息
 categories:
- - tutorial
+ - c++语法
 tags:
 ---
 
