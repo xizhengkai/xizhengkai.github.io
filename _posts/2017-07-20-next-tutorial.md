@@ -6,22 +6,126 @@ categories:
 tags:
 ---
 
-> NexT is a high quality elegant [Jekyll](https://jekyllrb.com) theme ported from [Hexo Next](https://github.com/iissnan/hexo-theme-next). It is crafted from scratch, with love.
-
 <!-- more -->
 
-[Live Preview](http://simpleyyt.github.io/jekyll-theme-next/)
+## Struct 和Union区别
 
-## Screenshots
+1.在存储多个成员信息时，编译器会自动给struct成员分配空间，`struct可以存储多个成员信息`，而Union`每个成员会用一个存储空间，只能存储最后一个成员的信息`。
+2.都是由多个不同的数据类型成员组成，但在任何同一时刻，`Union只存放了一个被先选中的成员`，而`结构体的所有成员都存在`。
+3.对于`Union的不同成员赋值，将会对其他成员重写`，原来成员的值就不存在了，而对于struct的不同成员赋值，是互不影响的。
 
-* Desktop
-![Desktop Preview](http://iissnan.com/nexus/next/desktop-preview.png)
+注：在很多地方需要对结构体的成员变量进行修改。只是部分成员变量，那么就不能用联合体Union，因为Union的所有成员变量占一个内存。eg：在链表中个别数值域进行赋值就必须用struct。
 
-* Sidebar
+## 实例说明
 
-![Desktop Sidebar Preview](http://iissnan.com/nexus/next/desktop-sidebar-preview.png)
+* struct
+  struct简单来说就是一些相互关联的元素的集合，说是集合，其实它们在内存中的存放是有先后顺序的，并且每个元素都有自己的内存空间。看个例子：
+  
+```	cpp
+struct sTest
+{
+	int a; //sizeof(int) = 4
+	char b; //sizeof(char) = 1
+	short c; //sizeof(short) = 2
+}x;
+```
+所以在内存中至少占用4+1+2 = 7 byte。然而实际中占用的内存并不是7 byte，这就涉及到字节对齐方式。
 
-* Sidebar (Post details page)
+* union
+  union的不同之处就在于，它所有的元素共享同一内存单元，且__分配给union的内存size由类型最大的元素size来确定__，如下的内存就为一个double类型size
+
+  ```cpp
+  union uTest
+  {
+      int a; //sizeof(int) = 4
+      double b; //sizeof(double) = 8
+      char c; //sizeof(char) = 1
+  }x;
+  ```
+
+  所以分配的内存size就是8 byte。
+
+  既然是内存共享，理所当然地，它不能同时存放多个成员的值，而只能存放其中的一个值，就是最后赋予它的值，如：
+
+  ```cpp
+  x.a = 3;
+  x.b = 4.5;
+  x.c = 'A';
+  ```
+
+  __这样你只看到了x.c = 'A'，而其它已经被覆盖掉，失去了意义。__
+
+  __eg:__Sample联合只包含其中某一个成员，要么是index，要么是price。
+
+  ```cpp
+  union Sample{
+      int index;
+      double price;
+  };
+  ```
+
+  若 Sample ss; ss.index = 10; // 从今往后只能使用ss.index
+
+  若 Sample ss; ss.price = 14.25; // 从今往后只能使用ss.price
+
+  __在union的使用中，如果给其中某个成员赋值，然后使用另一个成员，是未定义行为，后果自负__
+
+  struct成员是互相独立的，一个struct包含所有成员。
+
+  ```cpp
+  struct Example{
+      int indext;
+      double price;
+  };
+  ```
+
+  Example 结构包含两个成员，修改index不会对price产生影响，反之亦然。
+
+  *union的成员共享内存空间，一个union只包含其中某一个成员。*
+
+  两者的区别无非就**在于内存单元的分配与使用**。然而要灵活的使用struct和union还是存在很多小技巧的，比如：**元素的相关性不强时，完全是可以使用union，从而节省内存size；**struct和union还可以嵌套。
+
+* 内存对齐方式
+
+  ```cpp
+  union u1{
+      double a;
+      int b;
+  };
+  union u2{
+      char a[13];
+      int b;
+  };
+  union u3{
+      char a[13];
+      char b;
+  };
+  cout<<sizeof(u1)<<endl; //8
+  cout<<sizeof(u2)<<endl; //16
+  cout<<sizeof(u3)<<endl; //13
+  ```
+
+  都知道**union的大小取决于它所有的成员中，占用空间最大的一个成员的大小**。所以对于u1来说，大小就是最大的double类型成员a了，所以sizeof(u1) = sizeof(double) = 8。但是对于u2和u3，最大的空间都是char[13]类型的数组，为什么u3的大小是13，而u2是16呢？**关键在于u2中的成员int b。由于int类型成员的存在，使u2的对齐方式变成4**，也就是说，u2的大小必须在4的对界上，所以占用的空间变成了16（最接近13的对界）。
+
+  结论：**复合数据类型，如union，struct，class的对齐方式为成员中对齐方式最大的成员的对齐方式。**
+
+  顺便提一下CPU对界问题，**32的c++采用8位对界来提高运行速度**，所以编译器会尽量把数据放在它的对界上以提高内存命中率。**对界是可以更改的，使用\#pagma pack(x)宏**可以改变编译器的对界方式，**默认是8**。**c++固有类型的对界取编译器对界方式与自身大小中较小的一个**。例如，指定编译器按2对界，int类型的大小是4，则int的对界为2和4中较小的2。在默认的对界方式下，因为几乎**所有的数据类型都不大于默认的对界方式8（除了long double），**所以**所有的固有类型的对界方式可以认为就是类型自身的大小**。更改一下上面的程序：
+
+  ```cpp
+  #pragma pack(2)
+  union u2{
+      char a[13];
+      int b;
+  };
+  union u3{
+      char a[13];
+      char b;
+  };
+  #pragma pack(8)
+  cout<<sizeof(u2)<<endl; //14  由于手动更改对界方式为2，所以int的对界也变成了2，u2的对界取成员中最大的对界，也是2了，所以此时sizeof（u2）= 14。
+  cout<<sizeof(u3)<<endl; //13 char的对界为1。
+  ```
+
 
 ![Desktop Sidebar Preview](http://iissnan.com/nexus/next/desktop-sidebar-toc.png)
 
