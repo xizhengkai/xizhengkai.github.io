@@ -126,156 +126,76 @@ struct sTest
   cout<<sizeof(u3)<<endl; //13 char的对界为1。
   ```
 
+**结论**：c++固有类型的对界取编译器对界方式与自身大小中较小的一个。
 
-![Desktop Sidebar Preview](http://iissnan.com/nexus/next/desktop-sidebar-toc.png)
+* struct的sizeof问题
 
-* Mobile
+  因为对齐问题使结构体的sizeof变得比较复杂，看例子：（默认对齐方式下）
 
-![Mobile Preview](http://iissnan.com/nexus/next/mobile.png)
+  ```cpp
+  struct s1{
+      char a;
+      double b;
+      int c;
+      char d;
+  };
+  struct s2{
+      char a;
+      char b;
+      int c;
+      double d;
+  };
+  cout<<sizeof(s1)<<endl; //24
+  cout<<sizeof(s2)<<endl; //16
+  ```
 
+  同样是两个char类型，一个int类型，一个double类型，但是**因为对界问题，导致他们的大小不同**。计算结构大小可以采用元素摆放法，例如：首先，cpu判断结构体的对界，根据上一节的结论，s1和s2的对界都取最大的元素类型，也就是double类型的对界8.然后开始摆放每个元素。
 
-## Installation
+* 特例
 
-Check whether you have `Ruby 2.1.0` or higher installed:
+  ```cpp
+  #include<stdio.h>
+  union{
+      int i;
+      char x[2];
+  }a;
+  void main(){
+      a.x[0] = 10;
+      a.x[1] = 1;
+      printf("%d",a.i);
+  }
+  ```
 
-```sh
-ruby --version
-```
+  在联合体a中定义了两种数据类型，字符数组x以及整形变量是16位的，数组大小为2的字符数组为8\*2 = 16位。如此一来，编译器便会为联合体a在内存中开辟一个16位的空间，这个空间里存储联合体的数据，但是这个空间只有16位，它既是整形变量的数据，也是字符数组的数据。**如果你的程序从字符数组的角度解析这个空间，那么它就是两个字符，如果你的程序从整型的角度解析这个空间，那么它就是一个整数。**
 
-Install `Bundler`:
+  以上例子，现在已经开辟了一个16位的空间，然后我们假定现在空间还没有被赋值，为
 
-```sh
-gem install bundler
-```
+  ```
+  00000000 00000000
+  ```
 
-Clone Jacman theme:
+  那么在运行完代码
 
-```sh
-git clone https://github.com/Simpleyyt/jekyll-theme-next.git
-cd jekyll-theme-next
-```
+  ```
+  a.x[0] = 10;
+  a.x[1] = 1;
+  ```
 
-Install Jekyll and other dependencies from the GitHub Pages gem:
+  之后16位的空间变为：
 
-```sh
-bundle install
-```
+  ```
+  00000110 00000001
+  ```
 
-Run your Jekyll site locally:
+  然后程序运行
 
-```sh
-bundle exec jekyll server
-```
+  ```
+  printf("%d",a.i);
+  ```
 
-More Details：[Setting up your GitHub Pages site locally with Jekyll](https://help.github.com/articles/setting-up-your-github-pages-site-locally-with-jekyll/)
+  就是把联合体a当成一个整数来解析，而不是字符串数组。。那么这样一来，程序就把这16位变成了一个整数：
 
+  ```
+  (00000001 00000110)二进制 = （266）十进制
+  ```
 
-## Features
-
-### Multiple languages support, including: English / Russian / French / German / Simplified Chinese / Traditional Chinese.
-
-Default language is English.
-
-```yml
-language: en
-# language: zh-Hans
-# language: fr-FR
-# language: zh-hk
-# language: zh-tw
-# language: ru
-# language: de
-```
-
-Set `language` field as following in site `_config.yml` to change to Chinese.
-
-```yml
-language: zh-Hans
-```
-
-### Comment support.
-
-NexT has native support for `DuoShuo` and `Disqus` comment systems.
-
-Add the following snippets to your `_config.yml`:
-
-```yml
-duoshuo:
-  enable: true
-  shortname: your-duoshuo-shortname
-```
-
-OR
-
-```yml
-disqus_shortname: your-disqus-shortname
-```
-
-### Social Media
-
-NexT can automatically add links to your Social Media accounts:
-
-```yml
-social:
-  GitHub: your-github-url
-  Twitter: your-twitter-url
-  Weibo: your-weibo-url
-  DouBan: your-douban-url
-  ZhiHu: your-zhihu-url
-```
-
-### Feed link.
-
-> Show a feed link.
-
-Set `rss` field in theme's `_config.yml`, as the following value:
-
-1. `rss: false` will totally disable feed link.
-2. `rss:  ` use sites' feed link. This is the default option.
-
-    Follow the installation instruction in the plugin's README. After the configuration is done for this plugin, the feed link is ready too.
-
-3. `rss: http://your-feed-url` set specific feed link.
-
-### Up to 5 code highlight themes built-in.
-
-NexT uses [Tomorrow Theme](https://github.com/chriskempson/tomorrow-theme) with 5 themes for you to choose from.
-Next use `normal` by default. Have a preview about `normal` and `night`:
-
-![Tomorrow Normal Preview](http://iissnan.com/nexus/next/tomorrow-normal.png)
-![Tomorrow Night Preview](http://iissnan.com/nexus/next/tomorrow-night.png)
-
-Head over to [Tomorrow Theme](https://github.com/chriskempson/tomorrow-theme) for more details.
-
-## Configuration
-
-NexT comes with few configurations.
-
-```yml
-
-# Menu configuration.
-menu:
-  home: /
-  archives: /archives
-
-# Favicon
-favicon: /favicon.ico
-
-# Avatar (put the image into next/source/images/)
-# can be any image format supported by web browsers (JPEG,PNG,GIF,SVG,..)
-avatar: /default_avatar.png
-
-# Code highlight theme
-# available: normal | night | night eighties | night blue | night bright
-highlight_theme: normal
-
-# Fancybox for image gallery
-fancybox: true
-
-# Specify the date when the site was setup
-since: 2013
-
-```
-
-## Browser support
-
-![Browser support](http://iissnan.com/nexus/next/browser-support.png)
