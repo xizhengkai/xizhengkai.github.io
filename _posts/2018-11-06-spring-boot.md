@@ -6,7 +6,7 @@ categories:
 tags:
 ---
 
-此教程跟随慕课网[2小时学会Spring Boot](https://www.imooc.com/learn/767)
+> 此教程跟随慕课网[2小时学会Spring Boot](https://www.imooc.com/learn/767)
 
 <!-- more -->
 
