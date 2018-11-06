@@ -76,7 +76,7 @@ public class HelloController {
 http://127.0.0.1:8080/hello
 ```
 
-即可显示![1541511791889](C:\Users\认知计算组\AppData\Roaming\Typora\typora-user-images\1541511791889.png)
+即可显示
 
 也可在cmd端，cd到C:\SprintBoot\girl，输入命令：
 
