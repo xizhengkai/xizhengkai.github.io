@@ -2,7 +2,7 @@
 title: spring-boot搭建
 description: 2小时学会spring boot
 categories:
- - Java，网页
+ - Java
 tags:
 ---
 
@@ -46,12 +46,12 @@ tags:
       </mirror>
   </mirrors>
   ```
-
+  
 ### 创建项目
 
 通过idea创建项目，选择`new->project->Spring Initializr`修改好域名和项目名称（在这项目名称改为girl），选择java版本，点击下一步，选择web，设置project存储路径。
 
-## 创建spring boot应用，hellword
+## 创建spring boot应用，helloword
 
 ```java
 package com.xzk.girl;
@@ -75,8 +75,6 @@ public class HelloController {
 ```http
 http://127.0.0.1:8080/hello
 ```
-
-即可显示
 
 也可在cmd端，cd到C:\SprintBoot\girl，输入命令：
 
